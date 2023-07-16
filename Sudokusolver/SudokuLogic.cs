@@ -7,6 +7,7 @@ namespace Sudokusolver
     //множество статусов клетки - изначально_известна/заполнена/пуста/ошибка
     public enum CellStatus { known, written, empty, error };
     
+    //struct Coordinates {byte Y;byte X;} //сделать нормальныечеловеческие координаты клетки
 
     //класс клетки судоку
     //у клетки есть координаты
@@ -25,7 +26,7 @@ namespace Sudokusolver
 
         CellStatus status; // пусто/известно/известно_сначала/ошибка
         byte Value; //если пустая - то тут ноль
-        public SortedSet<byte> Variants; // если не пустая - то тут нулл
+        public SortedSet<byte> Variants; // если не пустая - то тут null
 
         //конструктор клетки
         //определяется значение value клетки и её статус
@@ -38,7 +39,7 @@ namespace Sudokusolver
 
         //некоторый костыль. по сути, это продолжение конструктора.
         //определить столбец/ряд/квадрат в конструкторе затруднительно
-        //в основном потому, что в момент создания клеток они(столбцы/ряды/квадраты) еще не существуют
+        //потому что в момент создания клеток они(столбцы/ряды/квадраты) еще не существуют
         //столбцы/ряды/квадраты создаются позже из уже созданных клеток
         //эта функция запускается после их создания
         //это мешает определить столбцы/ряды/квадраты как readonly
@@ -172,7 +173,6 @@ namespace Sudokusolver
 
     //множество статусов конструкта - незаполнен/заполнен/ошибка
     public enum StructStatus { process, full, error };
-
     //public enum StructType { column, row, square };
     
     //классы строк, столбцов и квадратов являются наследниками абстрактного класса "конструкт"
@@ -187,7 +187,9 @@ namespace Sudokusolver
 
         public SortedSet<byte> Missing; // каких цифр не хватает
         public SortedSet<byte> Found; // какие цифры есть
-        protected StructStatus status; // заполнено/незаполнено
+
+        //StructType type; //на будущее, когда я решусь удалить наследников
+        protected StructStatus status; // заполнено/незаполнено/ошибка
 
         protected HashSet<Cell[]> alternations; //сет чередований в конструкте
 
@@ -195,12 +197,11 @@ namespace Sudokusolver
         //если найденое чередование содержится в одном из имеющемся, большее удаляется  
         private void AddAlternation(Cell[] arr)
         {
-            int i;
             Cell[] alter = new Cell[arr.Length];
+            int i;
             for (i = 0; i < arr.Length; i++)
                 alter[i] = arr[i];
             HashSet<Cell[]> fordelete = new HashSet<Cell[]> { };
-
             bool addflag = true;
             foreach (Cell[] alters in alternations)
                 if (alter.Length < alters.Length)
@@ -391,11 +392,11 @@ namespace Sudokusolver
                 byte[,] combs; //варианты наборов
                 int countcandidte; // сколько элементов в чередовании ищем (кандидаты в чередование)
                 int numbcandidte; // номер кандитата в счетчике (который будет потом)
-                int countcombs; //сколько вариантов наборов. цэ из эн по ка
+                int countcombs; //сколько вариантов наборов = cnk
                 for (countcandidte = 1; countcandidte < misscount; countcandidte++)
                 {
                     alternation = new Cell[countcandidte]; // массив под чередование
-                    combs = combinations(misscount, countcandidte); //все наборы из н по к. да, лучше бы по другому
+                    combs = combinations(misscount, countcandidte); //все наборы из н по к. нужно сделать по другому 
                     countcombs = cnk(misscount, countcandidte); // количество наборов
                     bool checkflag; //флаг, что каждая клетка по отдельности подходит по количеству вариантов 
                     for (i = 0; i < countcombs; i++) //пробуем все комбинации
@@ -442,14 +443,13 @@ namespace Sudokusolver
         //число сочетаний из n элементов по k штук (цэ из эн по ка)
         private int cnk(int n, int k)
         {
-            int i, nf = 1, nkf = 1, kf = 1;
+            int nf = 1, nkf = 1, kf = 1, mul = 1;
             
             //for (i = 1; i <= n; i++) nf *= i;
             //for (i = 1; i <= k; i++) kf *= i;
             //for (i = 1; i <= n - k; i++) nkf *= i;
 
-            int mul = 1;
-            for (i = 1; i <= n; i++)
+            for (int i = 1; i <= n; i++)
             {
                 mul *= i;
                 nf = (i == n) ? mul : nf;
@@ -462,6 +462,8 @@ namespace Sudokusolver
         //сочетания из n элементов по k штук
         //возвращает массив, по элементам этого массива потом(в другой функции) составляем наборы клеток
         //...идея мне не нравится, по-другому не думал как делать
+        //через непомерно большое время я таки узнал о next_permutation() 
+        //но идея все равно поганая, нужно лучше
         private byte[,] combinations(int n, int k)
         {
             int g, count = cnk(n, k);
@@ -505,9 +507,8 @@ namespace Sudokusolver
         public byte num;
         public Column(Cell[] cls, byte numb)
         {
-            int i;
             cells = new Cell[9];
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 cells[i] = cls[i]; //по значению, не по ссылке
             num = numb;
             status = StructStatus.process;
@@ -516,7 +517,7 @@ namespace Sudokusolver
 
             alternations = new HashSet<Cell[]> { };
 
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 if (!cells[i].IsEmpty())
                     FoundNum(cells[i].GetValue());
         }
@@ -540,10 +541,10 @@ namespace Sudokusolver
         public byte num;
         public Row(Cell[] cls, byte numb)
         {
-            int i;
             cells = new Cell[9];
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 cells[i] = cls[i];
+
             num = numb;
             status = StructStatus.process;
             Missing = new SortedSet<byte> { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -551,9 +552,9 @@ namespace Sudokusolver
 
             alternations = new HashSet<Cell[]> { };
 
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 if (!cells[i].IsEmpty())
-                    FoundNum(cells[i].GetValue());
+                    FoundNum( cells[i].GetValue() );
         }
         public override string ShowInfo()
         {
@@ -574,9 +575,8 @@ namespace Sudokusolver
         public byte[] num;
         public Square(Cell[] cls, byte[] numb)
         {
-            int i;
             cells = new Cell[9];
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 cells[i] = cls[i];
             num = numb;
             status = StructStatus.process;
@@ -585,7 +585,7 @@ namespace Sudokusolver
 
             alternations = new HashSet<Cell[]> { };
 
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 if (!cells[i].IsEmpty())
                     FoundNum(cells[i].GetValue());
         }
@@ -616,15 +616,17 @@ namespace Sudokusolver
 
         public Sudoku(int[,] arr)
         {
-            byte i, j;
             Cell[,] cells = new Cell[9, 9];
             Cell[] buff = new Cell[9];
             cols = new Column[9];
             rows = new Row[9];
             sqrs = new Square[3, 3];
+
+            byte i, j;
             for (i = 0; i < 9; i++)
                 for (j = 0; j < 9; j++)
                     cells[i, j] = new Cell((byte)arr[i, j]); //создаем клетки
+            
             for (i = 0; i < 9; i++) //заполняем конструкты клетками
             {
                 for (j = 0; j < 9; j++)
@@ -637,21 +639,24 @@ namespace Sudokusolver
                     buff[j] = cells[(i / 3) * 3 + j / 3, (i % 3) * 3 + j % 3];
                 sqrs[i / 3, i % 3] = new Square(buff, new byte[2] { (byte)(i / 3), (byte)(i % 3) });
             }
+
             for (i = 0; i < 9; i++)
                 for (j = 0; j < 9; j++)
                     cells[i, j].SetContructs(cols[j], rows[i], sqrs[i / 3, j / 3]);
+            
             for (i = 0; i < 9; i++)
                 for (j = 0; j < 9; j++)
                     cells[i, j].CheckVariants();
         }
         public Sudoku(Sudoku other)
         {
-            byte i, j;
             Cell[,] cells = new Cell[9, 9];
             Cell[] buff = new Cell[9];
             cols = new Column[9];
             rows = new Row[9];
             sqrs = new Square[3, 3];
+
+            byte i, j;
             for (i = 0; i < 9; i++)
                 for (j = 0; j < 9; j++)
                 {
@@ -679,12 +684,13 @@ namespace Sudokusolver
         }
         public Sudoku()
         {
-            byte i, j;
             Cell[,] cells = new Cell[9, 9];
             Cell[] buff = new Cell[9];
             cols = new Column[9];
             rows = new Row[9];
             sqrs = new Square[3, 3];
+
+            byte i, j;
             for (i = 0; i < 9; i++)
                 for (j = 0; j < 9; j++)
                     cells[i, j] = new Cell(0); //создаем клетки
@@ -709,9 +715,8 @@ namespace Sudokusolver
         //возвращает true если все решено
         public bool CheckForWin() 
         {
-            int i;
             bool flag = true;
-            for (i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
                 if (!rows[i].IsFull() || !cols[i].IsFull() || !sqrs[i / 3, i % 3].IsFull())
                     flag = false;
             return flag;
@@ -721,9 +726,8 @@ namespace Sudokusolver
         public bool CheckForEqual(Sudoku other) 
         {
             bool flag = true;
-            byte i, j;
-            for (i = 0; i < 9; i++)
-                for (j = 0; j < 9; j++)
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
                     if (flag &&
                         rows[i].cells[j].Variants != null && other.rows[i].cells[j].Variants != null &&
                         rows[i].cells[j].Variants.Count != other.rows[i].cells[j].Variants.Count //достаточно бредово. надобы неравно но не робит
@@ -787,8 +791,6 @@ namespace Sudokusolver
                         for (j = 1; j <= 9; j++)
                             flag |= sqrs[i / 3, i % 3].FindPlaceFor(j);
                     }
-
-                    
                 }
                 for (i = 0; i < 9; i++)
                     for (j = 0; j < 9; j++)
@@ -813,7 +815,7 @@ namespace Sudokusolver
         //... но у меня пока не получилось отследить такую ситуацию и проверить работу кода
         public Sudoku[] HardSolve(Cell cell) 
         {
-            int i, j, k;
+            //int i, j, k;
             int unicount = cell.Variants.Count;
             byte value;
             Sudoku[] Alt;
@@ -823,9 +825,9 @@ namespace Sudokusolver
 
             Alt = new Sudoku[unicount];
 
-            HashSet<byte> fordelete = new HashSet<byte>();
+            HashSet<byte> fordelete = new HashSet<byte>(); //список на удаление - если удалять сразу, ломается нумерация
 
-            for (k = 0; k < unicount; k++)
+            for (int k = 0; k < unicount; k++)
             {
                 Alt[k] = new Sudoku(this); //создали альт
                 value = cell.Variants.ElementAt(k);
@@ -851,22 +853,20 @@ namespace Sudokusolver
                 rows[celly].cells[cellx].Variants.Remove(var);
             
             /**/ // идея то логичная, но схлопывает неправильно / хотя хз но проверить один хрен надо
-            for (i = 0; i < 9; i++) // хз нужно ли это вообще, но сама идея логичная
-                for (j = 0; j < 9; j++) //что ищем:
+            for (int i = 0; i < 9; i++) // хз нужно ли это вообще, но сама идея логичная
+                for (int j = 0; j < 9; j++) //что ищем:
                 {//рассматривамая клетка пустая, та же клетка в альтах заполнена одинаковой цыфирью
                     if (rows[i].cells[j].IsEmpty() && //в оригинале клетка пуста
                         Alt != null && //альты есть
                         Alt.Length > 0 && //альты есть 
                         !Alt[0].rows[i].cells[j].IsEmpty() ) // в первом альте клетка не пуста
                     {
-                        for (k = 1; k < unicount; k++) //если подставили все варианты в клетку
+                        for (int k = 1; k < unicount; k++) //если подставили все варианты в клетку
                             if (
                                 Alt[k] != null && //альт есть
                                 !Alt[k].CheckForError() && //альт не скатился в ошибку
-                                (
-                                Alt[k].rows[i].cells[j].IsEmpty() || //в каком-то альте та же клетка пуста или
-                                Alt[k].rows[i].cells[j].GetValue() != Alt[0].rows[i].cells[j].GetValue() //не совпадает с первым альтом
-                                )
+                                (Alt[k].rows[i].cells[j].IsEmpty() || //в каком-то альте та же клетка пуста или
+                                Alt[k].rows[i].cells[j].GetValue() != Alt[0].rows[i].cells[j].GetValue() )//не совпадает с первым альтом
                                 )
                             {
                                 equalflag = false;
@@ -893,10 +893,11 @@ namespace Sudokusolver
         //n-ый уровень перебора
         //в разработке
         public void MegaSolve()
-        //отчаянный(но рабочий) перебор в надежде найти хоть какое-то решение
+        //отчаянный(но рабочий?) перебор в надежде найти хоть какое-то решение
+        //переписать? есть идея лучше - рекурсия и всё такое
         {
             Console.WriteLine("Megasolve");
-            int i, j, k;
+            //int i, j, k;
             int cellx, celly;
             byte value;
             bool equalflag;
@@ -907,8 +908,8 @@ namespace Sudokusolver
             Cell[] sequence; // последовательность клеток, которые нужно угадать
             /*Sudoku[] AltUniverse;*/
             Sudoku[] buff;
-            for (i = 0; i < 9; i++)
-                for (j = 0; j < 9; j++)
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
                     if (rows[i].cells[j].IsEmpty())
                         Emptys.Add(rows[i].cells[j]);
 
@@ -969,9 +970,8 @@ namespace Sudokusolver
         {
             Comparer<Cell> CountVars = new CompareCellByVariants();
             SortedSet<Cell> res = new SortedSet<Cell>(CountVars);
-            int i, j;
-            for (i = 0; i < 9; i++)
-                for (j = 0; j < 9; j++)
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
                     if (rows[i].cells[j].IsEmpty())
                         res.Add(rows[i].cells[j]);
             return res;
