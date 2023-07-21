@@ -6,6 +6,23 @@ using System.Windows.Forms;
 
 namespace Sudokusolver
 {
+    enum Moves {nothing, writenum, writevar, erasevar, lookforplace};
+    //структура для хранения контекста - какие галочки включены, какая клетка выделена, какое действие ожидается
+    //раньше оно просто так лежало, решил объединить в структуру. осталось переписать обращения
+    struct context 
+    {
+        Moves WaitingFor;
+        bool ready;
+        bool ShowVariants;
+        Construct waiting;
+        Cell curcell;
+        Column curcol;
+        int colnum;
+        Row currow;
+        int rownum;
+        Square cursqre;
+        int sqrex, sqrey;
+    }
     public partial class Form1 : Form
     {
         Sudoku sudoku; //решаемое судоку
@@ -16,8 +33,9 @@ namespace Sudokusolver
         Button[] numbuttons; //массив кнопок для цифр
         
         //множество действий для цифр - ничего/написать цифру/написать вариант/стереть вариант/поиск цифры в конструкте
-        enum Moves {nothing, writenum, writevar, erasevar, lookforplace};
         
+        //перенести в контекст, переписать все обращения
+        /**/
         Moves WaitingFor; //текущее ожидаемое действие.
         ////waitingfor == writenum => нажатие цифры приведет к написанию нажатой цифры в выделенную клетку
 
@@ -39,6 +57,7 @@ namespace Sudokusolver
 
         Square cursqre; //в каком квадрате
         int sqrex = 0, sqrey = 0; // 0-2
+        /**/
 
         //шрифт для написания известных цифр
         static Font bold = new Font(FontFamily.GenericSerif, 15.0F, FontStyle.Bold);
@@ -417,6 +436,7 @@ namespace Sudokusolver
         }
 
         // нажатие на "1-й уровень перебора"
+        //переписать - судокулогика лезет в юи, такого не должно быть
         private void HardSolveButton_Click(object sender, EventArgs e)
         {
             Sudoku Check = new Sudoku(sudoku);
@@ -436,6 +456,11 @@ namespace Sudokusolver
 
             if (sudoku.CheckForWin())
                 Victory();    
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
 
         //вывод судоку в таблицу на экран

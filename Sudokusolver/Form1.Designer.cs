@@ -63,14 +63,14 @@ namespace Sudokusolver
             this.ezsolve = new System.Windows.Forms.Button();
             this.restartbutton = new System.Windows.Forms.Button();
             this.HelpBox = new System.Windows.Forms.GroupBox();
+            this.HardSolveButton = new System.Windows.Forms.Button();
+            this.SolveButton = new System.Windows.Forms.Button();
             this.AutoVariants = new System.Windows.Forms.CheckBox();
             this.NumBox = new System.Windows.Forms.GroupBox();
             this.Cancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.readybutton = new System.Windows.Forms.Button();
             this.resetbutton = new System.Windows.Forms.Button();
-            this.SolveButton = new System.Windows.Forms.Button();
-            this.HardSolveButton = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SudokuGrid)).BeginInit();
             this.CellBox.SuspendLayout();
@@ -407,6 +407,26 @@ namespace Sudokusolver
             this.HelpBox.TabStop = false;
             this.HelpBox.Text = "Авторешение";
             // 
+            // HardSolveButton
+            // 
+            this.HardSolveButton.Location = new System.Drawing.Point(87, 45);
+            this.HardSolveButton.Name = "HardSolveButton";
+            this.HardSolveButton.Size = new System.Drawing.Size(75, 43);
+            this.HardSolveButton.TabIndex = 8;
+            this.HardSolveButton.Text = "1-й уровень перебора";
+            this.HardSolveButton.UseVisualStyleBackColor = true;
+            this.HardSolveButton.Click += new System.EventHandler(this.HardSolveButton_Click);
+            // 
+            // SolveButton
+            // 
+            this.SolveButton.Location = new System.Drawing.Point(6, 45);
+            this.SolveButton.Name = "SolveButton";
+            this.SolveButton.Size = new System.Drawing.Size(75, 43);
+            this.SolveButton.TabIndex = 7;
+            this.SolveButton.Text = "0-й уровень перебора";
+            this.SolveButton.UseVisualStyleBackColor = true;
+            this.SolveButton.Click += new System.EventHandler(this.SolveButton_Click);
+            // 
             // AutoVariants
             // 
             this.AutoVariants.AutoSize = true;
@@ -469,26 +489,6 @@ namespace Sudokusolver
             this.resetbutton.UseVisualStyleBackColor = true;
             this.resetbutton.Click += new System.EventHandler(this.resetbutton_Click);
             // 
-            // SolveButton
-            // 
-            this.SolveButton.Location = new System.Drawing.Point(6, 45);
-            this.SolveButton.Name = "SolveButton";
-            this.SolveButton.Size = new System.Drawing.Size(75, 43);
-            this.SolveButton.TabIndex = 7;
-            this.SolveButton.Text = "0-й уровень перебора";
-            this.SolveButton.UseVisualStyleBackColor = true;
-            this.SolveButton.Click += new System.EventHandler(this.SolveButton_Click);
-            // 
-            // HardSolveButton
-            // 
-            this.HardSolveButton.Location = new System.Drawing.Point(87, 45);
-            this.HardSolveButton.Name = "HardSolveButton";
-            this.HardSolveButton.Size = new System.Drawing.Size(75, 43);
-            this.HardSolveButton.TabIndex = 8;
-            this.HardSolveButton.Text = "1-й уровень перебора";
-            this.HardSolveButton.UseVisualStyleBackColor = true;
-            this.HardSolveButton.Click += new System.EventHandler(this.HardSolveButton_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -504,6 +504,7 @@ namespace Sudokusolver
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.SudokuGrid)).EndInit();
             this.CellBox.ResumeLayout(false);
