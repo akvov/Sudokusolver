@@ -436,21 +436,9 @@ namespace Sudokusolver
         }
 
         // нажатие на "1-й уровень перебора"
-        //переписать - судокулогика лезет в юи, такого не должно быть
         private void HardSolveButton_Click(object sender, EventArgs e)
         {
-            Sudoku Check = new Sudoku(sudoku);
-            int i;
-            bool first = true;
-            while (first || !sudoku.CheckForEqual(Check)) //работает пока есть изменения
-            {
-                first = false;
-                sudoku.Solve();
-                for (i = 0; i < 81; i++)
-                    if (sudoku.rows[i / 9].cells[i % 9].IsEmpty() && sudoku.HardSolve(sudoku.rows[i / 9].cells[i % 9]) == null)
-                        break;
-                Check = sudoku;
-            }
+            sudoku.HardSolve();
 
             PrintToGrid();
 
@@ -458,12 +446,14 @@ namespace Sudokusolver
                 Victory();    
         }
 
+        //не должно быть, случайно добавил
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
 
-        //вывод судоку в таблицу на экран
+        //вывод судоку в таблицу на экран 
+        //флаг - есть что переделать
         public void PrintToGrid()
         {
             DataGridViewCell gridcell; //ячейка в таблице
@@ -481,22 +471,20 @@ namespace Sudokusolver
 
                     if (cell.IsKnown()) //изначально известная клетка
                         gridcell.Style.Font = bold;
-                    else
-                    if (cell.IsEmpty())//пустая клетка
+                    else //пустая или заполненная клетка
                         gridcell.Style.Font = italic;
-                    else //заполненная клетка
-                        gridcell.Style.Font = italic;
-
-                    if (ShowVariants && cell.IsEmpty() && cell.Variants.Count <= 4)
-                    { //если в клетке <= 4 вариантов, то показать их наверху клетки
-                        string text = "";
-                        foreach (byte num in cell.Variants)
-                            text += num.ToString();
-                        vars[j, i].Text = text;
-                    }
-                    else
+                    
+                    string text = "";
+                    if (ShowVariants && cell.IsEmpty() && cell.Variants.Count <= 4) //если включены автоварианты
                     {
-                        string text = "";
+
+                            foreach (byte num in cell.Variants)
+                                text += num.ToString();
+                            vars[j, i].Text = text;
+ 
+                    }
+                    else //выключены автоварианты
+                    {
                         foreach (byte num in uservars[j, i] )
                             text += num.ToString();
                         vars[j, i].Text = text;
@@ -513,6 +501,7 @@ namespace Sudokusolver
                 else
                     colvars[i].Text = "";
 
+                //повторный код? подумать как объединить в метод
                 if (!sudoku.rows[i].IsFull() && sudoku.rows[i].Missing.Count <= 5)
                 {
                     string text = "";
@@ -525,9 +514,12 @@ namespace Sudokusolver
             }
         }
         
-        //волшебная кнопка-решалка. надо доделать альтернативные вселенные, тыкать наугад и всётакое
+        //волшебная кнопка-решалка
+        //переписать полностью, когда будет готов n-ый уровень перебора ( MegaSolve() )
         private void ezsolve_Click(object sender, EventArgs e)
-        {   
+        {
+            sudoku.MegaSolve();
+            /** /
             Sudoku Check = new Sudoku(sudoku);
             int i;
             sudoku.Solve();
@@ -536,25 +528,29 @@ namespace Sudokusolver
             {
                 sudoku.Solve();
                 Console.WriteLine("не сработал solve");
+                sudoku.HardSolve();
+                /** /
                 for (i=0; i<81; i++)
                     if (sudoku.rows[i/9].cells[i%9].IsEmpty() )
-                        sudoku.HardSolve(sudoku.rows[i / 9].cells[i % 9]);
+                        sudoku.HardSolveIteration(sudoku.rows[i / 9].cells[i % 9]);
+                /** /
                 if (sudoku.CheckForEqual(Check))
                 {
-                    /**/
+                    /** /
                     Console.WriteLine("не сработал hardsolve");
-                    /**/
+                    /** /
                     bool flag;
-                    sudoku.MegaSolve(); //раскомментить когда нормально будет
+                    sudoku.MegaSolve(); //когда нормально будет
                     if (sudoku.CheckForEqual(Check))
                         Console.WriteLine("MegaSolve не сработал");
                     else
                         Console.WriteLine("MegaSolve сработал");
-                    /**/
+                    /** /
                 }
                 else
                     Console.WriteLine("сработал hardsolve");
             }
+            /**/
 
             PrintToGrid();
 
