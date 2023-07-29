@@ -193,7 +193,7 @@ namespace Sudokusolver
         private void SudokuGrid_Paint(object sender, PaintEventArgs e)
         { //...как нормально нарисовать решетку в таблице? НИКАК
             //имею в виду, думал, что это можно сделать как-то в настройках таблицы, или вроде того, но нет(или я просто не нашел)
-            //вместо этого рисую решетку поверх таблицы. решилпроблемугениально
+            //вместо этого рисую решетку поверх таблицы
             Pen pen = new Pen(Color.Black, 3);
             for (int i = 0; i < 4; i++)
             {
@@ -519,39 +519,6 @@ namespace Sudokusolver
         private void ezsolve_Click(object sender, EventArgs e)
         {
             sudoku.MegaSolve();
-            /** /
-            Sudoku Check = new Sudoku(sudoku);
-            int i;
-            sudoku.Solve();
-
-            while (sudoku.CheckForEqual(Check))
-            {
-                sudoku.Solve();
-                Console.WriteLine("не сработал solve");
-                sudoku.HardSolve();
-                /** /
-                for (i=0; i<81; i++)
-                    if (sudoku.rows[i/9].cells[i%9].IsEmpty() )
-                        sudoku.HardSolveIteration(sudoku.rows[i / 9].cells[i % 9]);
-                /** /
-                if (sudoku.CheckForEqual(Check))
-                {
-                    /** /
-                    Console.WriteLine("не сработал hardsolve");
-                    /** /
-                    bool flag;
-                    sudoku.MegaSolve(); //когда нормально будет
-                    if (sudoku.CheckForEqual(Check))
-                        Console.WriteLine("MegaSolve не сработал");
-                    else
-                        Console.WriteLine("MegaSolve сработал");
-                    /** /
-                }
-                else
-                    Console.WriteLine("сработал hardsolve");
-            }
-            /**/
-
             PrintToGrid();
 
             if (sudoku.CheckForWin())

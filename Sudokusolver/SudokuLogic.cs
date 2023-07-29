@@ -822,7 +822,7 @@ namespace Sudokusolver
         //то этот вывод надо записать
         //... но у меня пока не получилось отследить такую ситуацию и проверить работу кода
         // возвращает true при прогрессе в решении
-        private bool HardSolveIteration(Cell cell) 
+        private bool HardSolveIteration(Cell cell, bool CommsOn = false) 
         {
             int unicount = cell.Variants.Count;
             byte value;
@@ -846,14 +846,14 @@ namespace Sudokusolver
                 if (Alt[k].CheckForWin()) //1) мы его решили и это хорошо
                 {
                     cell.WriteNumIntoCell(value);
-                    Console.WriteLine("В какой-то вселенной оно решилось" + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
+                    if (CommsOn) Console.WriteLine("В какой-то вселенной оно решилось" + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
                     return true; //обычного solve хватит, прекращаем решение
                 }
                 if (Alt[k].CheckForError()) //true => есть ошибка
                 { //2) вариант ведет к ошибке => вариант неверный
                     fordelete.Add(value);
                     res = true;
-                    Console.WriteLine("ведет к ошибке " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
+                    if (CommsOn) Console.WriteLine("ведет к ошибке " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
                 }
                 //3) ничего. и тогда надо перебирать дальше
             }
@@ -892,7 +892,7 @@ namespace Sudokusolver
                         ) //и если воттакое нашли
                     { //ни разу не видел, чтобы это сработало
                         // затруднительно проверить правильность
-                        Console.WriteLine("в клетке " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + " мультивселенная схлопнулась " + (i + 1).ToString() + " " + (j + 1).ToString() + "=>" + Alt[0].rows[i].cells[j].GetValue());
+                        if (CommsOn) Console.WriteLine("в клетке " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + " мультивселенная схлопнулась " + (i + 1).ToString() + " " + (j + 1).ToString() + "=>" + Alt[0].rows[i].cells[j].GetValue());
                         rows[i].cells[j].WriteNumIntoCell(Alt[0].rows[i].cells[j].GetValue());
                         return true;
                     }
@@ -922,170 +922,111 @@ namespace Sudokusolver
         }
 
         //n-ый уровень перебора
-        //в разработке
-        
-        //так. что-то очень намудрил. интересно. очень нужно подумать.
-        private HashSet<Cell> MegaSolveIteration(int N, HashSet<Cell> cellset )
-        {   //
-            Console.Write("рекурсивный вызов N = " + N + ' ');
-            foreach (Cell cell in cellset)
-                Console.Write(cell.CellInfoShort());
-            Console.WriteLine();
+        private HashSet<Cell> MegaSolveIteration(int N, HashSet<Cell> cellset)
+        {
 
-            if (N != 1) //шаг рекусрии
+            if (N > 1) //вывод потом удалить
+                Console.Write("рекурсивный вызов N = " + N + ' ');
+            if (cellset != null )
+            { 
+                foreach (Cell cell in cellset)
+                    Console.Write(cell.CellInfoShort());
+                Console.WriteLine();
+            }
+
+
+            if (cellset != null)
+                foreach (Cell cell in cellset)
+                    this.rows[cell.Y].cells[cell.X].WriteNumIntoCell(cell.GetValue());
+
+
+            if ( N != 1 )
             {
-                Cell cell = cellset.Last();
-                byte value;
-                int variant_count = cell.Variants.Count;
-                HashSet<Cell> res = null;
-
                 Solve();
 
-                SortedSet<Cell> Emptys;
-                Sudoku[] Alt = new Sudoku[variant_count];
+                SortedSet<Cell> Emptys = SortedEmptyCells();
+                HashSet<Cell> res = null;
+                int variant_count;
 
-                for (int variant_num = 0; variant_num < variant_count; variant_num++)
+                foreach ( Cell emptyCell in Emptys )
                 {
-                    Alt[variant_num] = new Sudoku(this);
-                    value = cell.Variants.ElementAt(variant_num);
-                    Alt[variant_num].rows[cell.Y].cells[cell.X].WriteNumIntoCell(value); //вставили вариант
-                    cell.WriteNumIntoCell(value);
+                    variant_count = emptyCell.Variants.Count();
+                    byte value;
+                    Sudoku[] Alt = new Sudoku[variant_count];
 
-                    Alt[variant_num].Solve();
-                    Emptys = SortedEmptyCells(); //сет пустых клеток
-
-                    HashSet<Cell> buff; //можно обойтись одним сетом, но с двумя лучше(?) читаемость
-                    foreach (Cell emptycell in Emptys)
+                    for (int variant_num = 0; variant_num < variant_count; variant_num++ )
                     {
-                        HashSet<Cell> cells = new HashSet<Cell>(cellset) {emptycell };
-                        //cells.Add();
-                        buff = MegaSolveIteration(N - 1, cells); //рекурсивый вызов - уменьшенный N, расширенный сет
+                        Alt[variant_num] = new Sudoku(this);
+                        value = emptyCell.Variants.ElementAt(variant_num);
+                        Cell copycell = Alt[variant_num].rows[emptyCell.Y].cells[emptyCell.X];
+                        copycell.WriteNumIntoCell(value);
+
+                        HashSet<Cell> cells = new HashSet<Cell>(cellset) { copycell };
+
+                        HashSet<Cell> buff = Alt[variant_num].MegaSolveIteration(N-1, cells);
                         if (buff != null)
                         {
                             res = buff;
                             break; //если нашли решение - выходим
                         }
+                    
                     }
                     if (res != null)
                         break; //отсюда тоже выходим
 
                 }
                 return res; //если ничего не нашли - оно останется null
+
+
             }
-            else //N == 1
+            else // (N == 1)
             {
                 HardSolve();
-                if (CheckForWin()) 
-                { 
-                    return cellset; //нашли решение - возвращаем сет (и держим в голове, что по-хорошему, последней клетки в сете не хватает)
-                }
+                if (CheckForWin())
+                    return cellset; //нашли решение - возвращаем сет
                 else
                     return null; //не нашли решение - возвращаем null
             }
+
         }
 
-        //считает чудовищно медленно. конечно, чего еще ждать от рекурсии, но за 3.5 часа не выйти на 4-ый уровень перебора...
-        //точно есть ошибка
+        //работает хорошо...но слишком долго
+        //удалил известную цифру из задачи первого уровня - считало 20 минут
+        //и дальше третьего уровня работа не проверялась
         public void MegaSolve()
         {
             int N; //уровень перебора
-            SortedSet<Cell> Emptys = SortedEmptyCells();
             int N_ceil = 5; //потолок для N. по логике - это количество пустых клеток
                             //но на самом деле так делать - это сомнительно
                             //1) в худшем случае, рекурсивный вызов по 80 клеткам будет считать примерно до следующего тысячелетия
                             //2) какое-нибудь решение всё равно гарантированно найдется раньше
                             //3) (?) самые сложные судоку в мире - около 9 уровня перебора
+                            //4) я (пока) не встречал ничего сложнее 2-го уровня
             HardSolve();
 
             HashSet<Cell> res = null;
             if (!CheckForWin() )
-            for (N = 2; N < N_ceil; N++)
+            for (N = 5; N <= N_ceil; N++)
             {
                 Console.WriteLine( "уровень перебора = " + N );
-                foreach(Cell cell in Emptys)
-                {
-                    var cellset = new HashSet<Cell> { cell };
-                    res = MegaSolveIteration(N - 1, cellset);
-                    
-                }
+                
+                var cellset = new HashSet<Cell> {  };
+                res = MegaSolveIteration(N - 1, cellset);
+
                 if (res != null || CheckForWin() ) break;
             }
-            if (res!=null)
+            if (res != null)
+            {
                 foreach (Cell cell in res)
-                    Console.WriteLine(cell.CellInfo() );
+                {
+                    Console.WriteLine(cell.CellInfo());
+                    rows[cell.Y].cells[cell.X].WriteNumIntoCell(cell.GetValue() );
+                }
+                HardSolve();
+            }
         
         }
-            /*
-        //отчаянный(но рабочий?) перебор в надежде найти хоть какое-то решение
-        //переписать? есть идея лучше - рекурсия и всё такое
-        {
-            Console.WriteLine("Megasolve");
-            //int i, j, k;
-            int cellx, celly;
-            byte value;
-            bool equalflag;
-            bool final = false;
-            int countseq, seq;
-            SortedSet<Cell> Emptys = SortedEmptyCells();
-            SortedSet<Cell> Emptysbuff;
-            Cell[] sequence; // последовательность клеток, которые нужно угадать
-            Sudoku[] buff;
-            for (int i = 0; i < 9; i++)
-                for (int j = 0; j < 9; j++)
-                    if (rows[i].cells[j].IsEmpty())
-                        Emptys.Add(rows[i].cells[j]);
-
-            for (countseq = 2; countseq < 3; countseq++) //верх потом поменять. хз на что, но по хорошему верха... не должно быть? это же и есть уровень перебора
-            {
-                sequence = new Cell[countseq];
-                foreach (Cell cell in Emptys)
-                {
-                    sequence[0] = cell;
-                    cellx = cell.X;
-                    celly = cell.Y;
-                    buff = HardSolve(cell); //набор альтов для клетки. вставили в клетку все варианты, смортим что из этого получается
-                    //важно помнить, что hardsolve не решает полностью, просто делает выводы
-                    for (seq = 1; seq < countseq; seq++)
-                    {
-                        foreach (Sudoku alt in buff)
-                        {
-                            alt.Solve();
-                            Emptysbuff = alt.SortedEmptyCells(); //пустые клетки в альте
-                            foreach (Cell altcell in Emptysbuff)
-                            {
-                                sequence[seq] = altcell;
-                                if (!alt.CheckForError() && alt.HardSolve(altcell) == null)
-                                {
-                                    alt.Solve();
-                                    if (alt.CheckForWin()) //
-                                    {
-                                        Console.WriteLine("АЧЁВСМЫСЛЕ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                                        Console.WriteLine((celly + 1).ToString() + (cellx + 1).ToString() + " " + alt.rows[celly].cells[cellx].GetValue());
-                                        Console.WriteLine((altcell.Y + 1).ToString() + (altcell.X + 1).ToString() + " " + alt.rows[altcell.Y].cells[altcell.X].GetValue());
-                                        rows[celly].cells[cellx].WriteNumIntoCell(alt.rows[celly].cells[cellx].GetValue() );
-                                        rows[altcell.Y].cells[altcell.X].WriteNumIntoCell(altcell.GetValue());
-                                        final = true;
-                                        break;
-                                    }
-
-                                }
-
-                            }
-
-                            if (final) break;
-
-                        }
-                        if (final) break;
-
-                    }
-                    if (final) break;
-                }
-                if (final) break;
-            }
-
-            Console.WriteLine("endmega");
-
-        }*/
+           
 
         //возвращает сет из клеток, сортированный по возрастанию количества вариантов
         private SortedSet<Cell> SortedEmptyCells()
