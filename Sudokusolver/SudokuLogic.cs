@@ -159,7 +159,7 @@ namespace Sudokusolver
             return text;
         }
 
-        public string CellInfoShort()
+        public string CellInfoShort() //отладочное, потом удалить
         {
             string text = "|[" + (Y + 1) + ',' + (X + 1) + "] - " + Value + '|';
             return text;
@@ -846,7 +846,7 @@ namespace Sudokusolver
                 if (Alt[k].CheckForWin()) //1) мы его решили и это хорошо
                 {
                     cell.WriteNumIntoCell(value);
-                    if (CommsOn) Console.WriteLine("В какой-то вселенной оно решилось" + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
+                    if (CommsOn) Console.WriteLine("ведет к решению" + (celly + 1).ToString() + " " + (cellx + 1).ToString() + "  - " + value.ToString());
                     return true; //обычного solve хватит, прекращаем решение
                 }
                 if (Alt[k].CheckForError()) //true => есть ошибка
@@ -892,7 +892,7 @@ namespace Sudokusolver
                         ) //и если воттакое нашли
                     { //ни разу не видел, чтобы это сработало
                         // затруднительно проверить правильность
-                        if (CommsOn) Console.WriteLine("в клетке " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + " мультивселенная схлопнулась " + (i + 1).ToString() + " " + (j + 1).ToString() + "=>" + Alt[0].rows[i].cells[j].GetValue());
+                        if (CommsOn) Console.WriteLine("из клетки " + (celly + 1).ToString() + " " + (cellx + 1).ToString() + " вывод " + (i + 1).ToString() + " " + (j + 1).ToString() + "=>" + Alt[0].rows[i].cells[j].GetValue());
                         rows[i].cells[j].WriteNumIntoCell(Alt[0].rows[i].cells[j].GetValue());
                         return true;
                     }
@@ -927,6 +927,7 @@ namespace Sudokusolver
 
             if (N > 1) //вывод потом удалить
                 Console.Write("рекурсивный вызов N = " + N + ' ');
+
             if (cellset != null )
             { 
                 foreach (Cell cell in cellset)
@@ -934,11 +935,9 @@ namespace Sudokusolver
                 Console.WriteLine();
             }
 
-
             if (cellset != null)
                 foreach (Cell cell in cellset)
                     this.rows[cell.Y].cells[cell.X].WriteNumIntoCell(cell.GetValue());
-
 
             if ( N != 1 )
             {
